@@ -1,25 +1,50 @@
-const hero = document.querySelector('.hero');
-const text = hero.querySelector('h1');
-const walk = 70;
+const holes = document.querySelectorAll('.hole');
+const scoreBoard = document.querySelector('.score');
+const moles = document.querySelectorAll('.mole');
+let lastHole;
+let timeUp = false;
+let score = 0;
 
-function shadow(e) {
-  // const width = hero.offsetWidth;
-  // const height= hero.offsetHeight;
-
-  const {offsetWidth: width, offsetHeight: height} = hero;
-  let {offsetX: x, offsetY: y} = e;
-  console.log(x,y);
-  if(this !== e.target) {
-    x = x + e.target.offsetLeft;
-    y = y + e.target.offsetTop;
-  }
-
-  const xWalk = Math.round((x/ width* walk) - (walk/2));
-    const yWalk = Math.round((y/ height* walk) - (walk/2));
-
-    text.style.textShadow  = `
-      ${xWalk}px ${yWalk}px 0 rgba(255,0,255,0.7),
-      ${xWalk * -1}px ${yWalk}px 0 rgba(0,255,255,0.7)`;
+function randTime(min, max){
+  return Math.round(Math.random()*(max-min)+min);
 }
 
-hero.addEventListener('mousemove', shadow);
+function randHole(holes) {
+  const idx = Math.floor(Math.random()*holes.length);
+  const hole = holes[idx];
+  if(hole == lastHole) {
+    console.log("Ah that that's the same bud");
+    return randHole(holes);
+  }
+  lastHole = hole;
+  return hole;
+}
+
+function peep() {
+  const time = randTime(400, 3000);
+  const hole = randHole(holes);
+  hole.classList.add('up');
+  setTimeout(()=> {
+    hole.classList.remove('up');
+    if(!timeUp){
+      peep()
+    }
+  }, time);
+}
+
+function startGame() {
+  scoreBoard.textContent = 0;
+  timeUp = false;
+  score = 0;
+  peep();
+  setTimeout(()=> timeUp = true, 10000);
+}
+
+function bonk(e) {
+  if(!e.isTrusted) return; //Cheater!
+  score++;
+  this.parentNode.classList.remove('up');
+  scoreBoard.textContent = score;
+}
+
+moles.forEach(mole => mole.addEventListener('click', bonk));
